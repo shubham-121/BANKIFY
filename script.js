@@ -97,7 +97,7 @@ const displayMovements = function (movements, sort = false) {
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
 
-  labelBalance.textContent = `${acc.balance}EUR`;
+  labelBalance.textContent = `${acc.balance}₹`;
 };
 // calcDisplayBalance(account1.movements);
 
@@ -111,14 +111,14 @@ const calcDisplaySummary = function (acc) {
     .reduce((acc, mov) => mov + acc, 0);
   //console.log(incomes);
   //Display the total deopsits
-  labelSumIn.textContent = `${Math.trunc(incomes)}€`;
+  labelSumIn.textContent = `${Math.trunc(incomes)}₹`;
 
   //Debited money
   const out = acc.movements
     .filter(mov => mov < 0)
     .map(mov => mov * eurToUsd)
     .reduce((acc, mov) => acc + mov);
-  labelSumOut.textContent = `${Math.abs(Math.trunc(out))}€`;
+  labelSumOut.textContent = `${Math.abs(Math.trunc(out))}₹`;
 
   //calculate the interests
   const interest = acc.movements
@@ -126,7 +126,7 @@ const calcDisplaySummary = function (acc) {
     .map(deposit => (deposit * acc.interestRate) / 100)
     .filter((int, i, arr) => int >= 1)
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${Math.trunc(interest)}€`;
+  labelSumInterest.textContent = `${Math.trunc(interest)}₹`;
 };
 // calcDisplaySummary(account1.movements); //calling the function to display all the debbit and credits
 
@@ -259,13 +259,13 @@ btnSort.addEventListener('click', e => {
 
 /////////////////////////////////////////////////
 //Practice Code below
-labelBalance.addEventListener('click', e => {
-  const movementsUI = Array.from(
-    document.querySelectorAll('.movements__value'),
-    el => Number(el.textContent.replace('€', ' '))
-  );
-  console.log(movementsUI);
-});
+// labelBalance.addEventListener('click', e => {
+//   const movementsUI = Array.from(
+//     document.querySelectorAll('.movements__value'),
+//     el => Number(el.textContent.replace('₹', ' '))
+//   );
+//   console.log(movementsUI);
+// });
 // inputLoginPin, inputLoginUsername;
 // const account = accounts.find(acc => acc.owner === 'Jessica Davis');
 // console.log(account);
