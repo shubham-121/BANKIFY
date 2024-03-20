@@ -62,7 +62,6 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 /////////////////////////////////////////////////
-/////////////////////////////////////////////////
 // LECTURES
 const eurToUsd = 1.1;
 const currencies = new Map([
@@ -84,7 +83,7 @@ const displayMovements = function (movements, sort = false) {
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-          <div class="movements__value">${mov}</div>
+          <div class="movements__value">${mov.toFixed(2)}</div>
         </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -97,7 +96,7 @@ const displayMovements = function (movements, sort = false) {
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
 
-  labelBalance.textContent = `${acc.balance}₹`;
+  labelBalance.textContent = `${acc.balance.toFixed(2)}EUR`;
 };
 // calcDisplayBalance(account1.movements);
 
@@ -111,14 +110,14 @@ const calcDisplaySummary = function (acc) {
     .reduce((acc, mov) => mov + acc, 0);
   //console.log(incomes);
   //Display the total deopsits
-  labelSumIn.textContent = `${Math.trunc(incomes)}₹`;
+  labelSumIn.textContent = `${Math.trunc(incomes)}€`;
 
   //Debited money
   const out = acc.movements
     .filter(mov => mov < 0)
     .map(mov => mov * eurToUsd)
     .reduce((acc, mov) => acc + mov);
-  labelSumOut.textContent = `${Math.abs(Math.trunc(out))}₹`;
+  labelSumOut.textContent = `${Math.abs(Math.trunc(out))}€`;
 
   //calculate the interests
   const interest = acc.movements
@@ -126,7 +125,7 @@ const calcDisplaySummary = function (acc) {
     .map(deposit => (deposit * acc.interestRate) / 100)
     .filter((int, i, arr) => int >= 1)
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${Math.trunc(interest)}₹`;
+  labelSumInterest.textContent = `${Math.trunc(interest)}€`;
 };
 // calcDisplaySummary(account1.movements); //calling the function to display all the debbit and credits
 
@@ -154,9 +153,65 @@ const updateUI = function (acc) {
 };
 console.log(accounts);
 
+/***************************************************************/
+//Logout timer functionality below
+
+const startLogOutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
+    //In each call preint remaining time to the UI
+
+    labelTimer.textContent = `${min}:${sec}`;
+
+    //when 0 seconds, stop the timer and log out the user
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = 'Login to get started';
+      containerApp.style.opacity = 0;
+    }
+    //decrease 1 seconds
+    time--;
+  };
+  //setting time to 5 minutes;
+  let time = 60;
+
+  //call timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
 //************************************************************************************ */
 // Login functionality below
-let currentAccount;
+let currentAccount, timer;
+
+//Fake Login for some time
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 100;
+
+/* 1st way of setting date below */
+// const now = new Date();
+// const day = now.getDate();
+// const month = now.getMonth() + 1;
+// const year = now.getFullYear();
+// const hour = now.getHours();
+// const min = now.getMinutes();
+//labelDate.textContent = `${day}/${month}/${year} ,${hour}:${min}`;
+
+/*second way of setting date below */
+const now = new Date();
+const options = {
+  hour: 'numeric',
+  minute: 'numeric',
+  day: 'numeric',
+  month: 'long',
+  weekday: 'long',
+  year: 'numeric',
+};
+labelDate.textContent = new Intl.DateTimeFormat('en-Uk', options).format(now);
+//
+
 btnLogin.addEventListener('click', e => {
   e.preventDefault(); //prevent from refreshing automatically on submit
 
@@ -179,6 +234,8 @@ btnLogin.addEventListener('click', e => {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
     //updates the UI
     updateUI(currentAccount);
   }
@@ -210,6 +267,10 @@ btnTransfer.addEventListener('click', e => {
     receiverAcc.movements.push(amount);
     //updates the UI
     updateUI(currentAccount);
+
+    //Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
 });
 
@@ -238,12 +299,14 @@ btnClose.addEventListener('click', e => {
 
 btnLoan.addEventListener('click', e => {
   e.preventDefault();
-  const amount = Number(inputLoanAmount.value);
+  const amount = Math.floor(inputLoanAmount.value);
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    currentAccount.movements.push(amount);
+    setTimeout(function () {
+      currentAccount.movements.push(amount);
 
-    //again update the UI
-    updateUI(currentAccount);
+      //again update the UI
+      updateUI(currentAccount);
+    }, 3000);
   }
   inputLoanAmount.value = '';
   //console.log(amount);
@@ -259,13 +322,14 @@ btnSort.addEventListener('click', e => {
 
 /////////////////////////////////////////////////
 //Practice Code below
-// labelBalance.addEventListener('click', e => {
-//   const movementsUI = Array.from(
-//     document.querySelectorAll('.movements__value'),
-//     el => Number(el.textContent.replace('₹', ' '))
-//   );
-//   console.log(movementsUI);
-// });
+labelBalance.addEventListener('click', e => {
+  const movementsUI = Array.from(
+    document.querySelectorAll('.movements__value'),
+    el => Number(el.textContent.replace('€', ' '))
+  );
+  console.log(movementsUI);
+});
+
 // inputLoginPin, inputLoginUsername;
 // const account = accounts.find(acc => acc.owner === 'Jessica Davis');
 // console.log(account);
@@ -286,3 +350,45 @@ btnSort.addEventListener('click', e => {
 //   } ${Math.abs(mov)}`;
 // });
 // console.log(movementsDescription);
+
+//New section below
+
+// const now = new Date('March 19,2024');
+// console.log(now);
+// Practice code below
+// const future = new Date(2024, 2, 19, 15, 30, 45);
+// console.log(future.getTime());
+// console.log(future.toISOString());
+// console.log(future.getMonth());
+// console.log(future.getHours());
+// console.log(future.setFullYear(2047));
+// console.log(future.toISOString());
+
+//setTimeout
+// const f1 = 'grape';
+// const f2 = 'orange';
+// setTimeout(
+//   (fruit1, fruit2) => console.log(`Fruits are:${fruit1} ${fruit2}`),
+//   5000,
+//   f1,
+//   f2
+// );
+
+// console.log('waiting');
+
+//setIntervval
+
+// setInterval(() => {
+//   const now = new Date();
+//   console.log(now);
+// }, 1000);
+
+// //
+// const options1 = {
+//   hour: 'numeric',
+//   day: 'numeric',
+//   month: 'long',
+// };
+// const presentt = new Date();
+// const present = new Intl.DateTimeFormat('en-UK', options1).format(presentt);
+// console.log(present);
